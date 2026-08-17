@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schonfeld Case-Study</title>
+<script>
+window.MathJax = {tex: {inlineMath: [['$', '$']], displayMath: [['$$', '$$']]}};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root { --ink:#263746; --navy:#173b63; --blue:#2878b8; --rule:#d9e1e8; --muted:#6b7885; --paper:#fff; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; background:#e8edf1; color:var(--ink); font-family:"Helvetica Neue",Arial,sans-serif; }
+  body { counter-reset: sheet; }
+  .page {
+    position:relative; width:8.5in; height:11in; margin:18px auto; padding:.42in .48in .4in;
+    background:var(--paper); overflow:hidden; break-after:page; page-break-after:always;
+    box-shadow:0 4px 18px rgba(23,59,99,.13); counter-increment:sheet;
+  }
+  .page:last-child { break-after:auto; page-break-after:auto; }
+  .running { display:flex; justify-content:space-between; align-items:center; height:.21in; margin-bottom:.08in;
+    color:#71808e; font-size:6.8pt; letter-spacing:.07em; text-transform:uppercase; border-bottom:1px solid var(--rule); }
+  .footer { position:absolute; left:.48in; right:.48in; bottom:.16in; display:flex; justify-content:space-between;
+    color:#7b8792; font-size:6.5pt; border-top:1px solid var(--rule); padding-top:4px; }
+  h1 { margin:.06in 0 .03in; color:var(--navy); font-size:20pt; line-height:1.05; letter-spacing:-.02em; text-align:center; }
+  .author { margin:0 0 .22in; color:#52616e; font-size:9pt; font-weight:600; text-align:center; }
+  h2 { margin:.03in 0 .08in; color:var(--navy); font-size:12.8pt; line-height:1.08; border-bottom:1.5px solid var(--blue); padding-bottom:4px; break-after:avoid; }
+  h3 { margin:.09in 0 .025in; color:var(--blue); font-size:8.8pt; line-height:1.08; break-after:avoid; }
+  p { margin:0 0 .06in; text-align:justify; orphans:2; widows:2; }
+  ol, ul { margin:.025in 0 .07in; padding-left:.18in; }
+  li { margin:0 0 .035in; text-align:justify; }
+  strong { color:#203d59; }
+  code { font:inherit; color:#314f6b; }
+  a { color:inherit; text-decoration:none; }
+  .lead { font-size:9.05pt; line-height:1.31; }
+  .lead p:first-child { font-size:10pt; color:#203d59; }
+  .columns { columns:2; column-gap:.23in; column-rule:1px solid #edf1f4; }
+  .columns > * { break-inside:avoid-column; }
+  .data-copy { font-size:7.05pt; line-height:1.18; }
+  .data-copy p { margin-bottom:.042in; }
+  .data-copy ol { padding-left:.16in; }
+  .factor-copy { font-size:6.75pt; line-height:1.14; columns:2; column-gap:.22in; column-rule:1px solid #edf1f4; }
+  .factor-copy h2 { column-span:all; }
+  .factor-copy h3 { break-after:avoid; }
+  .factor-copy p { margin-bottom:.036in; }
+  .factor-copy mjx-container[display="true"] { margin:.035in 0!important; font-size:85%!important; }
+  .results-copy { font-size:6.8pt; line-height:1.15; columns:2; column-gap:.22in; column-rule:1px solid #edf1f4; }
+  .results-copy h2 { column-span:all; }
+  .results-copy p { margin-bottom:.04in; }
+  .case-copy { font-size:7.45pt; line-height:1.17; columns:2; column-gap:.22in; column-rule:1px solid #edf1f4; }
+  .case-copy h2 { column-span:all; }
+  .case-copy p { margin-bottom:.045in; }
+  table { width:70%; margin:.04in auto .06in; border-collapse:collapse; font-size:7pt; text-align:center; }
+  th, td { border:1px solid #ced8e1; padding:2px 5px; }
+  .figure { margin:.07in 0 0; text-align:center; break-inside:avoid; }
+  .figure img { display:block; width:100%; height:100%; object-fit:contain; }
+  .data-figures { display:grid; grid-template-columns:46% 54%; gap:.08in; height:2.13in; margin-top:.07in; }
+  .correlation { height:2.7in; margin-top:.06in; }
+  .results-figures { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1.5in 1.82in; gap:.07in .08in; height:3.39in; margin-top:.07in; }
+  .case-figures { display:grid; grid-template-columns:1fr 1fr; gap:.08in; height:1.73in; margin:.07in 0 .09in; }
+  @media print {
+    @page { size:Letter; margin:0; }
+    html, body { background:#fff; }
+    .page { margin:0; box-shadow:none; }
+  }
+  @media screen and (max-width:850px) { .page { transform-origin:top left; } }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <div class="running"><span>Schonfeld Case-Study</span><span>Luis Felipe Lins</span></div>
+  <h1>Schonfeld Case-Study</h1>
+  <div class="author">Luis Felipe Lins</div>
+  <div class="lead"><p>In this case study, I was asked to write a working pipeline to pull data from SEC's EDGAR data on 13F fillings, construct positioning factors for a selected universe of possible assets (identified here by CUSIP codes) and investment managers (identified here by CIK codes), and backtest these possible factors performance.</p>
+<p>The main factor I intend to present is a centrality measure. With the universe of managers and assets under consideration, we can think that different managers may share similar positions, while some positions are held mostly by a couple of managers. In this sense, assets held in similar size by all of the managers are more central in a network of assets, while assets held differently among managers is less central. We therefore construct a centrality factor, measuring how common the size of the holding of an asset is among managers. The predictive power is expected to come from the following. When every manager holds a stock at roughly the same weight, no single manager's decision defines the position of the group as a whole (high centrality, low factor value). When managers hold the same stock but at different weights (e.g. one at 5% of its book, another at 0.5%) the stock's ownership is dominated by whoever took the largest bet, and its price is more exposed to what that group does next (low centrality, high factor value).</p>
+<p>To compare this new factor to other common factors, I'll also calculate three positioning factors serving as benchmark: net buying, breadth, and conviction. We'll describe these three factors (and the description of the centrality measure in more detail).</p>
+<p>The universe of assets I will consider are S&amp;P 500 stocks. The composition of the index, however, changes over time, and using its current value would imply a look-ahead bias, since we'd be only looking at the surviving (and winning) stocks up to date. Therefore, I reconstruct the historic S&amp;P 500 for each business day in the period under consideration. We do need the full holdings of each manager under consideration at each point in time, since this metric will be needed to find the importance of the S&amp;P 500 stocks inside the pool of other equity held by that manager.</p>
+<p>It's not clear, however, which universe of institutional managers we should consider. Different universes may make more sense to different factors. For example, if we're backtesting the net buying factor in an universe of managers who don't turn their positions over frequently, this factor may not carry much signal. On the other hand, if we're considering net buying in an universe of managers who constantly change positions, it points out that the stock under consideration has increasing demand associated with it, for instance. That's why I shall test four different universe of fillers, to be described in a later section.</p>
+</div>
+  <div class="footer"><span>Schonfeld Case-Study</span><span>1 / 5</span></div>
+</section>
+
+<section class="page">
+  <div class="running"><span>Schonfeld Case-Study</span><span>Luis Felipe Lins</span></div>
+  <h2>Data Gathering and Engineering</h2>
+  <div class="columns data-copy"><p>The first task consists of gathering position data from SEC's EDGAR database. Before describing how we build this data, it's worth to think about the data we'd like to have in the future. For each quarter (the reference frequency reported at EDGAR), we want (at first) to know all the holdings values for all firms. The information of the equity holdings of an investment firm must be sent 45 days after the end of the reference quarter, meaning in theory we could have a complete view of the holdings of all investment managers (henceforth fillers) 45 days after the end of a quarter.</p>
+<p>This is no exactly the case for a couple of reasons. First, firms delay sending their 13F. Second, compliant and delayed firms may send amendments to their holdings position at any point in time after a quarter's end, even many years in the future. These amendments can either restate the holdings values (RESTATEMENT) or add new holdings to a previously stated position (NEW HOLDINGS). And a filler may send as many amendments as they wish. Hence, the composition of a firm's holdings (and hence the total pool of holdings) for any reference quarter may change over time. We have to take this into consideration when doing the backtest, to make sure we have point-in-time (PIT) discipline, and avoid look-ahead bias of using data not available up to a certain date (for instance amendments regarding a quarter which will only come later). That's why in my intermediate dataset, I want to have lines indexed by (i) reference date (which quarter the information refers to); (ii) CIK (the CIK code of the filler/manager holding the position); (iii) CUSIP (the CUSIP code of the stock); (iv) vintage date (the date when the filling was made, i.e., when the information about that holdings line was available).</p>
+<p>First step consists of downloading the .zip files and saving the raw tables since we only want the tables of interest, and then cleaning the data. This process is made using function <code>get_13f_data()</code>, a wrapper of the whole process from 1 to 3:</p>
+<p>This function wraps the steps 1 to 3. First, it uses <code>download_13f</code> to get the .zip urls to the zip folders. Then, it uses <code>importer_13f</code> to select the tables of interest and save the raw tables. In this step, we also deduplicate information for a same index (CIK, CUSIP, ref_date, vintage_date). Note that within a given filing from a firm published in a certain date, there might be two or more lines related to only the same stock (CUSIP). This is because the firm also reports the managers holding each position, which might include shared positions among managers in a same firm. We sum positions within a same firm (CIK), at a same stock (CUSIP), for the same reference date (ref_date) published in a certain date (vintage_date), to create a unique investment firm/CIK-level holdings information.</p>
+<p>In line 354 it uses <code>clean_units</code> to clean the units of the data. This point deserves a further explanation.</p>
+<p>Since January of 2023, filers are required to file their positions in US dollars. Before that, filing was required in thousands of USD dollars. However, many fillers used to file in wrong units both before and after the change. More than that, there are some cases where filers wrongly report a bond as a stock, implying a millionare price. For that reason, <code>clean_units</code> is used to try to solve these problems. Each filling has a total position value and a number of shares, so we can calculate an implicit share price.</p>
+<p>Second thing to notice is that to make this adjustment, we can't commit look-ahead bias and use to calculate the median price, price information of a filer filing in the future. Thus, this unit correction process considers only prices available up to a given date to calculate the median implicit price.</p>
+<p>After running <code>clean_units</code>, the wrapper deals with amendments. Amendments change the value of firm CIK holdings of stock CUSIP for reference date ref_date, creating a new vintage for this combination. NEW HOLDINGS are added to the latest available value for that combination of CIK, CUSIP and ref_date. RESTATEMENT substitute the original value. The total holdings of each filer are then saved inside <code>13f_total.parquet</code>.</p>
+<p>Below, we see the total universe of 13F holdings for the top 1%, 5% and 10%. We see that the data seems to be consistent in the aggregate, with a total universe of 63 trillion USD, consistent with the number in other <a href="https://hedgemind.com/13f-filing-dashboard">outlets</a>.</p>
+<p>Next, we get S&amp;P 500 historical composition and prices data using the <code>get_spx_composition()</code> function:</p>
+<p>I use data from a <a href="https://raw.githubusercontent.com/fja05680/sp500/master/S%26P%20500%20Historical%20Components%20%26%20Changes%20(Updated).csv">GitHub</a> repository on the historical S&amp;P 500 composition. It has the tickers for the S&amp;P stocks in each rebalance day. However, our stocks in the int data are recognizable by CUSIP code. To do the mapping, we use data from SEC's Fails-to-Deliver data, which contains a mapping of CUSIP to ticker at each point in time. This process is not perfect, but we're able to identify more than 99% of S&amp;P tickers by CUSIP code at any point in time. In the whole process under consideration (since 2014), there were approximately 800 stocks which composed the S&amp;P in all dates. Next, we get price data for these 800 stocks from YahooFinance, but only using prices from stocks who were part of the index in each date.</p>
+<p>There's a problem, however, which deserves a disclaimer. Out of the 779 S&amp;P tickers, Yahoo Finance can't download 178 of them. These tickers are companies who changed their ticker (e.g. AABA), acquisitions (e.g. ANSS) or failing companies (e.g. SIVB). This is a real survivorship bias because Yahoo Finance does not keep track of these prices, and I'm afraid that I didn't know any open source databases to get data for these companies. On the other hand, I believe it's not clear the direction of the bias. Failing companies usually would bias results downwards, since we do not consider the possibility of buying shares of these companies who went bankrupt at some point. Acquisitions, on the other hand, would bias the results upwards, since an acquisition usually involves a premium over the stock price. Dealing with this problem is one of our main concerns, as I will discuss in the end.</p>
+</div>
+  <div class="data-figures">
+    <figure class="figure"><img src="data/final/concentration.png" alt="concentration"></figure>
+    <figure class="figure"><img src="data/final/coverage.png" alt="coverage"></figure>
+  </div>
+  <div class="footer"><span>Schonfeld Case-Study</span><span>2 / 5</span></div>
+</section>
+
+<section class="page">
+  <div class="running"><span>Schonfeld Case-Study</span><span>Luis Felipe Lins</span></div>
+  <div class="factor-copy">
+    <p>Next step is constructing the universe of filers. We won't consider all investment managers in the construction of the factors, because some small filers could bias the factors. The rule I will construct will always get around 5% of the filers. There are four possible rules:</p>
+<ol>
+<li>AUM: get the 5% of the largest filters by equity AUM (within the data from 13F fillings).</li>
+<li>Position size variance (both the top and the bottom): the variance of the number of positions held. This can be considered a proxy for turnover, but not turnover itself, because a filer with 50 stocks may change its total 50 stock composition and the position size variance is zero.</li>
+<li>Highest number of effective positions: for each filer, we construct the Herfindahl–Hirschman Index of each position, denoting the concentration of the filer's holdings. If a filer has 300 positions but most of it is in one, this one position will have a large HHI. The number of effective positions is the inverse of the HHI  (so $\text{eff}_n = \frac{1}{\sum_i w_i^2}$, where $w_i$ is the share of each stock $i$ in the wallet of a manager), so if all positions are evenly distributed it will equal the number of positions. If there's only one large position and many small ones, the number will be close to 1. It's used as a proxy for managers with many bets.</li>
+</ol>
+<p>For items 2 and 3, we also do a pre-filtering of the universe of managers. The reason is that there may be small managers with very high variance, for instance, and this may bias the selection of small firms. So we only select the 20% largest firms by AUM and then the 25% (to yield in the end 5% in total) with the largest effective number of positions or size variance (or lowest variance).</p>
+<p>In this step, again, we need to look out for look-ahead bias. These ranking are only made using information available up to a given date, so if a manager add NEW HOLDINGS which for instance include it among the top 5% in AUM after the 45 days deadline, it'll only show up in the univere of CIKs after the amendment is sent.</p>
+
+    
+<h2>Factor Creation</h2><p>Now we can start to create the factors. Here's a detailed description. Every factor is evaluated on a <strong>decision date</strong> $d$, which is any day a filing lands or a filing deadline passes. The <strong>prevailing quarter</strong> $q(d)$ is the most recent quarter whose 45-day deadline has passed, $q + 45\text{d} \le d$, and $q^-$ is the quarter before it. The snapshot read on $d$ is the latest vintage of each $(\text{filer}, \text{quarter})$ pair filed up to $d$, restricted to the filers $F_d$ the selection rule picks on that date. Nothing filed after $d$ enters (to ensure we have PIT discipline), and the filer list is the one the rule would have produced on $d$, not the one it produces today.</p>
+<p>Write $n_{i,c,q}$ for the share count of stock $c$ that filer $i$ reports for quarter $q$, $v_{i,c,q}$ for the value, and $w_{i,c,q} = v_{i,c,q} / \sum_k v_{i,k,q}$ for the weight the position takes inside that filer's <strong>whole</strong> book (not only S&amp;P 500, which will be the universe allowed to investment for my backtesting strategy). Factors are computed on the whole book and only the output is cut to the S&amp;P500 index members of the day.</p>
+<h3>Net buying</h3><p>Let $B = \{i \in F_d : i \text{ reported both } q \text{ and } q^-\}$ (i.e. the set of filers who reported in two subsequent periods).</p>
+$$\text{netbuy}_c = \frac{\sum_{i \in B} n_{i,c,q} - \sum_{i \in B} n_{i,c,q^-}}{\sum_{i \in B} n_{i,c,q} + \sum_{i \in B} n_{i,c,q^-}}$$<p>Share count rather than value, since value also carries the price move of the quarter, which is not a decision of the manager. The scaling bounds the factor in $[-1, 1]$, where $+1$ is a position the group only opened and $-1$ one it fully left, so entries and exits stay in the sample. Measures if filers are buying or selling the stock.</p>
+<h3>Breadth change</h3>$$\Delta\text{breadth}_c = \frac{\left|\{i \in B : n_{i,c,q} &gt; 0\}\right| - \left|\{i \in B : n_{i,c,q^-} &gt; 0\}\right|}{|B|}$$<p>Every filer counts once, whatever its size, which is what separates this from net buying: a name that forty small managers entered and one large manager left moves the two in opposite directions. The scaling by $|B|$ keeps it comparable over time, as the universe grows from roughly 350 to 870 filers. Measures if the stock is gaining or losing holders, regardless of how large each holder is.</p>
+<h3>Conviction</h3><p>With $H_c = \{i \in F_d : w_{i,c} &gt; 0\}$ the filers actually holding $c$,</p>
+$$\text{conv}_c = \frac{1}{|H_c|} \sum_{i \in H_c} w_{i,c}$$<p>A level rather than a change, so it reads the prevailing quarter alone. It separates a real bet from a leftover: at equal number of holders, a security taking 4% of the books that own it is not the same as one taking 0.05%. Measures how large a bet the stock is inside the books of the managers who own it.</p>
+<h3>Centrality</h3><p>The prevailing quarter is pivoted into a matrix $B \in \mathbb{R}^{|F| \times |C|}$ with $B_{ic} = w_{i,c}$, keeping S&amp;P 500 stocks on the columns and, on the rows, filers holding at least 10 stock positions. Columns are then centred around the mean of the position size for that stock among filers,</p>
+$$\tilde{B}_{ic} = B_{ic} - \frac{1}{|F|}\sum_{j} B_{jc}$$<p>so a cell says how far a filer sits from the average filer on that security rather than how much it holds. Without centring the leading component converges to the average portfolio, which is roughly the market, and the factor becomes a market cap proxy. Taking the leading singular triplet $\tilde{B} \approx s_1 u_1 v_1^{\top}$, the factor is</p>
+$$\text{centrality}_c = \left| v_{1,c} \right|$$<p>$v_1$ is equivalently the leading eigenvector of the co-deviation matrix $\tilde{B}^{\top}\tilde{B}$, which is the eigenvector centrality of the network whose edges are pairs of securities that managers deviate on together. On the other hand $u_1$ is the manager side of the same axis: one number per filer, saying how strongly its book follows the dominant pattern and on which of its two sides the manager sits.</p>
+<p>I take the absolute value of $v$ because $v_1$ and $-v_1$ describe the same axis, that is, both solutions are feasible for the SVD decomposition (just invert the sign of $u$) and in some points in time, the resulting vector changes signs, meaning if we just used the raw value of this eigenvector, between two periods the factor value could invert completely. Using the absolute value solves the ordering problem, but the intuition is not exactly the same as looking at (a correctly ordered) $v$ vector.</p>
+<p>Measures how much managers disagree with one another on how large a position to take in the stock.</p>
+
+    <p>We want to test how correlated our main factor, Centrality, is to the other three factors, which we use mainly as benchmark. If they are perfectly correlated, we might be skeptic of whether this new Centrality measure carries any additional advantage over others. In fact, we see that correlation is high (~0.7) with Conviction, being zero with other factors. It makes sense, as the measure used to center the S&amp;P holdings is very closely related to the Conviction metric. We'll show below, at the backtesting part, however, that in terms of return, our strategy build with Centrality, has indeed an advantage over other measures.</p>
+
+  </div>
+  <figure class="figure correlation"><img src="data/final/factor_correlation.png" alt="factor_correlation"></figure>
+  <div class="footer"><span>Schonfeld Case-Study</span><span>3 / 5</span></div>
+</section>
+
+<section class="page">
+  <div class="running"><span>Schonfeld Case-Study</span><span>Luis Felipe Lins</span></div>
+  <div class="results-copy"><h2 id="Backtesting-and-Comparing-Factors">Backtesting and Comparing Factors</h2><p>We want to estimate all possible strategies in this framework. Remember that we don't know exactly under which pool of managers each factor strategy might work better, so we test all possible combinations of:</p>
+<ol>
+<li>Pool of managers (4 combinations)</li>
+<li>Positioning factors (4 combinations)</li>
+<li>Frequencies (3 combinations)</li>
+<li>Long-only or long-short (2 combinations)</li>
+<li>Trading costs (0, 5, 10, or 20 bps, 4 combinations)</li>
+</ol>
+<p>Yielding 384 combinations. These combinations are then saved in an Excel file called backtest_grid.xlsx, with statistics of these strategies.</p>
+<p>First, we note that in the long-only strategies, the centrality factor did indeed introduce improvements relative to the others factors, since it's the only strategy able to given substantial returns above the S&amp;P 500, while other factors yield strategies with similar risk, but returns below it. The worst Sharpe among long-only centrality factor combinations is almost as good as the best Sharpe of the second-best factor (on average), Conviction. In particular, no other factor has been able to generate strategies beating the S&amp;P in Sharpe, only the Centrality factor. It's important to say, however, that the portfolio is extremely concentrated, and makes large bets on stocks with high values of the factor. Addressing this is one of our priorities, and something we'll look at more closely when discussing the example of Stryker in 2014-2016.</p>
+<p>However, it does not seem to be a good factor for the long-short strategies, with other strategies yielding higher returns at lower risk. Particularly, the Breadth Change factor is superior, with most Centrality strategies having negative returns.</p>
+<p>Among all long-only strategies, the best Sharpe ratio comes from centrality, using the universe of firms with high variance in the number of shares held (proxy for high turnover) and quarterly rebalancing, a Sharpe ratio of 0.73 with return equal 18.13% and 3.7% of α, superior to the S&amp;P 500 Sharpe of 0.62. Its market β is 1.14.</p>
+<h2 id="Evaluating-the-Factor's-Signal-and-Possible-Look-ahead-Bias">Evaluating the Factor's Signal and Possible Look-ahead Bias</h2><p>What we presented above measured how well a strategy behave, i.e., a partigular weighting of a given factor. Since a strategy may work for reasons not related to how the factor orders the stocks, in this subsection we would like to test the factor on its own. On each quarterly decision date, the S&amp;P stocks are sorted into ten decilers by the factor. We want to know if the higher/lower deciles have different returns from the rest. The chart below shows that there does not seem to be any clear sign in terms of returns from the Centrality factor itself. There does not seem to be a clear difference between deciles of the factor, and the difference between the 1st and the 10th is not significant (t-stat equal to 0.67). Visually speaking, the only factor which seems to carry some monotonicity is breadth change, even though its 1st to 10th decile difference is not significant either. The main gain, therefore, seems to come from the unbalanced betting on the factor, betting way deeper on stocks in the very top of the 10th decile.</p>
+<p>We also want to test how sensitive to look-ahead bias our strategies might be. Evidence of look-ahead would be to always select the winners, instead of selecing the stocks which hold large factor values. This does not seem to be the case. We took two examples below (the quarter where Stryker brought the highest return to the portfolio and one of the best quarters) to show that we're not picking the best returns, but indeed the companies with the highest factor value. Moreover, there are several partitions of the trading days where our strategy performs way worse than the market (including 10% drawdown relative to the S&amp;P in early 2025), also evidence against any PIT indiscipline.</p>
+<p>But as previously discussed, there's one type of look-ahead bias I wasn't able to deal with: survivorship bias in the price data from Yahoo Finance. We know, however, that starting in 2021 price coverage becomes increasingly better, growing from only 73% of the S&amp;P in 2014 to more than 90% from there onwards. We thus could try to measure how the survivorship bias is driving our results by running the backtest only from 2021 onwards. We use the exact same strategy, but instead of starting our factor strategy in 2015, we start it in 2021. The table bwlow does this comparison. In the full sample, we have more than 0.1 points of Sharpe in excess over the S&amp;P. This advantage falls to 0.05 from 2021 onwards (0.86 from our strategy versus 0.81 from the S&amp;P), but is still there. This suggests our strategy also has an edge over the market (and over other factors) even with more accurate price data and less survivorship bias.</p>
+</div>
+  <div class="results-figures">
+    <figure class="figure"><img src="data/final/risk_return.png" alt="risk_return"></figure>
+    <figure class="figure"><img src="data/final/cumulative_returns.png" alt="cumulative_returns"></figure>
+    <figure class="figure"><img src="data/final/factor_deciles.png" alt="factor_deciles"></figure>
+    <figure class="figure"><img src="data/final/quarterly_excess.png" alt="quarterly_excess"></figure>
+  </div>
+  <div class="footer"><span>Schonfeld Case-Study</span><span>4 / 5</span></div>
+</section>
+
+<section class="page">
+  <div class="running"><span>Schonfeld Case-Study</span><span>Luis Felipe Lins</span></div>
+  <div class="case-copy"><h2 id="A-case-study-with-Stryker">A case study with Stryker</h2><p>To have a better understanding of how our strategy/factor works, it's worth taking a look at one example of how our strategy works. We look at the example of Stryker, now ranked 108 in the S&amp;P 500. Stryker has been a large and important position in our portfolio in many quarters, being more than 50% of our portfolio between 2017 and 2020. Our allocation in Stryker in 2019 was responsible for 0.21+ units of capital return, one of the main contributions to the final NAV among all positions. Over all time, it contributed 0.48+ of the initial capital circa 8.2% of the whole returns.</p>
+<p>The reason why our allocation in Stryker was so high was because one firm (Greenleaf Trust) had more than 60% of its book on Stryker, way above the relative position of the second, third and fourth, who held less than 10%. In 2023, another manager (Novo A/S, who does from 7.8% of their book to 12.2%) constructs a large position, driving the centrality factor down and thus making us get rid of this position.</p>
+<p>First, note that there does not seem to be a data error, since the implicit price (from the 13F fillings) seem to track the Yahoo Finance quote, suggesting our data engineering process is working well. Also, our allocation seems consistent with the factor. However, because of the factor, we were not allocated in a period when the stock price was growing (post mid-2022), which is exactly when we get rid of our position.</p>
+</div>
+  <div class="case-figures">
+    <figure class="figure"><img src="data/final/stryker_cause.png" alt="stryker_cause"></figure>
+    <figure class="figure"><img src="data/final/stryker_position.png" alt="stryker_position"></figure>
+  </div>
+  <div class="case-copy"><h2 id="Next-Steps">Next Steps</h2><p>We close this document with the prioritary three next steps:</p>
+<h3 id="1.-Deal-with-Survivorship-Bias">1. Deal with Survivorship Bias</h3><p>As discussed, even though we are able to reconstruct the S&amp;P 500 index over time with good precision, even by mapping CUSIPs to tickers, we've seen that Yahoo Finance does not hold price information for merging or failing companies, thus introducing survivorship bias in our strategy as we simply do not consider feasible to invest in companies without price quotes. This is in my opinion the number one weakness with this case study, as could be solved if we had access to a more reliable and complete platform, such as BBG for example.</p>
+<h3 id="2.-Create-the-correct-centrality-measure">2. Create the correct centrality measure</h3><p>I've argued why we have to take the absolute value of the $v$ vector when building the centrality vector. The problem is that working with the absolute value changes the interpretation. If we looked at the non-absolute value (and assuming there were no sign changes, which was what led us to do this in the first place), the two ends of the factor would be the two sides of the same disagreement: stocks the dominant group of managers overweights relative to the average, and stocks it underweights. Stocks near zero are the ones every manager sizes alike. By taking the magnitude we lose that direction, and only compare stocks where managers agree against stocks where they disagree, whichever way. The loss is not only interpretive: $|v|$ is folded, so a decile sort on it reads flat even if the signed axis predicts returns linearly, which means the D10−D1 spread reported above says nothing about the signed version. I couldn't solve this problem at first, and hence why I used absolute values, but I do believe that implementation would do better than our current one.</p>
+<p>The main current difficulty is that in some points, the SVD solution changes signs, for instance, think of 3 stocks at 5 dates and its factor values:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">A</th>
+<th style="text-align:right">B</th>
+<th style="text-align:right">C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td style="text-align:right">−1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>D2</td>
+<td style="text-align:right">−1</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>D3</td>
+<td style="text-align:right">−1</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>D4</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">−1</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td>D5</td>
+<td style="text-align:right">−1</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>Note that at D4, the relative position was exactly the same as both D3 and D5, but the sign change would induce us to make a wrong rebalancing. At first, I tried to work with some kind of autocorrelation between the factor vectors. If a vector from one period to the other has a correlation of exactly -1, then it was almost certainly an inversion, and we could multiply the current vector by -1 to keep it consistent. However, especially around filling deadlines, the factors would indeed change, so a sign change could happen but with correlation far from -1. Thus, I prefered to stick with the absolute value implementation, but would like to think of a new way of solving this problem to work with the real centrality factor.</p>
+<h3 id="3.-Solve-Concentration">3. Solve Concentration</h3><p>We've seen that the strategy allocates very high shares of the portfolio in bets with high values of the centrality factor. I have used a cap at the factor value at 3, but even with this cap we've seen large bets in some stocks. I believe this may help us reduce the volatility of the strategy, while not losing much depending on how much (and following which ruling) we cap the maximum portfolio allocation in each stock.</p>
+</div>
+  <div class="footer"><span>Schonfeld Case-Study</span><span>5 / 5</span></div>
+</section>
+
+</body>
+</html>
