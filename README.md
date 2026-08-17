@@ -53,6 +53,8 @@ To isolate the signal from noise, the pipeline allows evaluating factors across 
 *   Calculates `net_buying`, `breadth_change`, and `conviction`.
 *   **`build_centrality`:** Computes the Centrality factor using Singular Value Decomposition (SVD) on a centered matrix of portfolio weights (Filers $\times$ CUSIPs). The leading singular vector represents the axis of greatest deviation from the consensus.
 
+*   The whole process up to this point might take some 2-3 hours running. For that reason, I leave available the resulting data for download at [Google Drive](https://drive.google.com/drive/folders/16gCtgLBQNonoC3usDN6SiV92xpf0rzeB?usp=sharing).
+
 ### 4. Backtesting Framework (`trading_strategy.py`)
 *   **`build_strategy`:** Constructs daily target portfolio weights based on the cross-sectional $Z$-score of the chosen factor. Incorporates strict Point-In-Time discipline by lagging fundamental data according to statutory 13F deadlines (45 days).
 *   **`run_backtest`:** Simulates the portfolio's daily returns, accurately reflecting drift between rebalance dates and applying transaction costs to the traded notional.
